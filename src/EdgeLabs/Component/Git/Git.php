@@ -32,7 +32,7 @@ class Git
      */
     public static function cloneRepo($repository, $path = null)
     {
-        if(!$path && realpath(self::$repositoryPath)) {
+        if (!$path && realpath(self::$repositoryPath)) {
             $path = realpath(self::$repositoryPath);
         }
 
@@ -55,7 +55,7 @@ class Git
      */
     public function fetch($args)
     {
-        self::execute('fetch '.$args);
+        self::execute('fetch ' . $args);
         return true;
     }
 
@@ -75,7 +75,7 @@ class Git
     {
         $output = self::execute("log --pretty=format:%H -n 1");
 
-        if(count($output) == 1) {
+        if (count($output) == 1) {
             return $output[0];
         } else {
             return null;
@@ -86,7 +86,7 @@ class Git
     {
         $output = self::execute("log --pretty=format:%H -n 2");
 
-        if(count($output) == 2) {
+        if (count($output) == 2) {
             return $output[1];
         } else {
             return null;
@@ -107,23 +107,23 @@ class Git
     }
 
     /**
-     * @param int  $limit
+     * @param int $limit
      * @param bool $ascOrder - get logs in asc order.
      * @return array
      */
     public function getRevisions($limit = 10, $ascOrder = false)
     {
-        $limit   = " -".abs($limit);
+        $limit   = " -" . abs($limit);
         $reverse = ($ascOrder ? ' --reverse ' : null);
 
-        $keyword = 'end:'.substr(sha1(random_int(10,1000).microtime()), 0, 8);
+        $keyword = 'end:' . substr(sha1(random_int(10, 1000) . microtime()), 0, 8);
 
-        $output = self::execute('log --no-merges --date-order --format="%H;;; %B;;; %an;;; %ae;;; %at %n'.$keyword.'"'.$reverse.$limit);
+        $output = self::execute('log --no-merges --date-order --format="%H;;; %B;;; %an;;; %ae;;; %at %n' . $keyword . '"' . $reverse . $limit);
 
         $revisions = array();
-        $line = null;
-        foreach($output as $partial) {
-            if($partial == $keyword && $line != "") {
+        $line      = null;
+        foreach ($output as $partial) {
+            if ($partial == $keyword && $line != "") {
                 $tmp = explode(';;;', $line);
 
                 $hash    = trim(@$tmp[0]);
@@ -137,9 +137,7 @@ class Git
                 $revisions[] = $revision;
 
                 $line = null;
-            }
-            else
-            {
+            } else {
                 $line .= $partial;
                 continue;
             }
@@ -153,15 +151,15 @@ class Git
         $status = self::execute('status');
 
         $modified = array();
-        $added = array();
+        $added    = array();
 
-        foreach($status as $line) {
+        foreach ($status as $line) {
             preg_match('/.*modified:([ ]*)(.*)/i', $line, $matchModified);
-            if(@$matchModified[2]) {
+            if (@$matchModified[2]) {
                 $modified[] = @$matchModified[2];
             } else {
                 preg_match('/.*new file:([ ]*)(.*)/i', $line, $matchNew);
-                if(@$matchNew[2]) {
+                if (@$matchNew[2]) {
                     $added[] = $matchNew[2];
                 }
             }
@@ -180,19 +178,32 @@ class Git
         return preg_match('/nothing to commit/i', $output[count($output) - 1]) > 0;
     }
 
+    public function isGitRepository($path = null)
+    {
+        try {
+            $output = self::execute('rev-parse --is-inside-work-tree', $path);
+            return (is_array($output) && trim($output[0]) == "true");
+        } catch (\Exception $e) {
+            if (preg_match('/not a git repository/i', $e->getMessage()) > 0) {
+                return false;
+            }
+            throw $e;
+        }
+    }
+
     /**
      * @param null $repository
      * @return array
      */
     public function getRemoteTags($repository = null)
     {
-        $output = self::execute('ls-remote --tags '.$repository);
+        $output = self::execute('ls-remote --tags ' . $repository);
         $result = array();
 
-        if(is_array($output)) {
-            foreach($output as $line) {
+        if (is_array($output)) {
+            foreach ($output as $line) {
                 preg_match('/(.*)refs\/tags\/(.*)/i', $line, $match);
-                if(@$match[2]) {
+                if (@$match[2]) {
                     $result[@$match[2]] = trim(@$match[1]);
                 }
             }
@@ -203,13 +214,14 @@ class Git
 
     /**
      * @param  string $command
+     * @param  string $cwd
      * @return mixed
-     *
-     * @throws GitRuntimeException
      */
-    protected static function execute($command)
+    protected static function execute($command, $cwd = null)
     {
-        if (self::$repositoryPath != null)
+        if ($cwd)
+            $git = 'git -C ' . escapeshellarg($cwd);
+        else if (self::$repositoryPath != null)
             $git = 'git -C ' . escapeshellarg(self::$repositoryPath);
         else
             $git = 'git';
@@ -224,7 +236,7 @@ class Git
         usleep(800);
 
         if ($returnValue !== 0) {
-            array_unshift($output, 'Command: '.$command);
+            array_unshift($output, 'Command: ' . $command);
             throw new GitRuntimeException(implode("\r\n", $output));
         }
 

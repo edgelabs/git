@@ -120,6 +120,12 @@ class GitTest extends PHPUnit_Framework_TestCase
     {
         $this->assertTrue($this->git->isWorkingCopyClean());
     }
+
+    public function testIsGitRepository()
+    {
+        $this->assertTrue($this->git->isGitRepository(), "Expected to receive 'true' for path under git version control");
+        $this->assertFalse($this->git->isGitRepository(sys_get_temp_dir()), "Expected to receive 'false' for path not under git version control");
+    }
 }
 
 ?>
