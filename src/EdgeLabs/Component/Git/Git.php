@@ -176,7 +176,8 @@ class Git
     public function isWorkingCopyClean()
     {
         $output = self::execute('status');
-        return $output[count($output) - 1] == 'nothing to commit, working tree clean';
+        // nothing to commit, working (directory|tree) clean
+        return preg_match('/nothing to commit/i', $output[count($output) - 1]) > 0;
     }
 
     /**
