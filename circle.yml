@@ -1,0 +1,16 @@
+machine:
+  environment:
+    COMPOSER_CACHE_DIR: ~/.composer/cache
+  php:
+    version: 7.0.4
+
+dependencies:
+  cache_directories:
+    - ~/.composer/cache
+
+  override:
+    - composer install --prefer-dist --no-interaction
+
+test:
+  override:
+    - phpunit
