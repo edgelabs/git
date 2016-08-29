@@ -116,6 +116,17 @@ class GitTest extends PHPUnit_Framework_TestCase
         $this->assertArrayHasKey('1.0.2', $tags);
     }
 
+    public function testGetTagFromHash()
+    {
+        $tag1 = $this->git->getTagFromHash('cfe6b389803750c8ba7637e380a9cfae0b861950');
+        $tag2 = $this->git->getTagFromHash('5f961363ddc8c8a6dade3023f110cd72a20e6934');
+        $tag3 = $this->git->getTagFromHash('bda7496f3c06d52e25c3eddd86dfec8250d7f8e0');
+
+        $this->assertEquals('1.0.0', $tag1);
+        $this->assertEquals('1.0.1', $tag2);
+        $this->assertEquals('1.0.2', $tag3);
+    }
+
     public function testIsWorkingCopyClean()
     {
         $this->assertTrue($this->git->isWorkingCopyClean());

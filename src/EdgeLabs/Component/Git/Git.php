@@ -168,6 +168,16 @@ class Git
         return array('message' => $status, 'modified' => $modified, 'added' => $added);
     }
 
+    public function getTagFromHash($hash) {
+        $output = self::execute('describe --tags --exact-match '.$hash);
+
+        if(count($output) == 1) {
+            return $output[0];
+        } else {
+            return null;
+        }
+    }
+
     /**
      * @return bool
      */
