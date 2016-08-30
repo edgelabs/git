@@ -121,10 +121,12 @@ class GitTest extends PHPUnit_Framework_TestCase
         $tag1 = $this->git->getTagFromHash('cfe6b389803750c8ba7637e380a9cfae0b861950');
         $tag2 = $this->git->getTagFromHash('5f961363ddc8c8a6dade3023f110cd72a20e6934');
         $tag3 = $this->git->getTagFromHash('bda7496f3c06d52e25c3eddd86dfec8250d7f8e0');
+        $tag4 = $this->git->getTagFromHash('2affa3b6db95f6193af90764e07915ca0bb006f6');
 
-        $this->assertEquals('1.0.0', $tag1);
-        $this->assertEquals('1.0.1', $tag2);
-        $this->assertEquals('1.0.2', $tag3);
+        $this->assertEquals('1.0.0', $tag1, "Expected tag version 1.0.0, ".$tag1. " received");
+        $this->assertEquals('1.0.1', $tag2, "Expected tag version 1.0.1, ".$tag2. " received");
+        $this->assertEquals('1.0.2', $tag3, "Expected tag version 1.0.2, ".$tag3. " received");
+        $this->assertEquals(null, $tag4, "Expected null, ".$tag4. " received");
     }
 
     public function testIsWorkingCopyClean()

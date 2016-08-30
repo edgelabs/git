@@ -3,6 +3,7 @@
 namespace EdgeLabs\Component\Git;
 
 use EdgeLabs\Component\Git\Exception\GitRuntimeException;
+use EdgeLabs\Component\Git\Exception\UnexpectedGitOutputException;
 
 /**
  * Code is influenced by sebastianbergmann/git
@@ -168,14 +169,30 @@ class Git
         return array('message' => $status, 'modified' => $modified, 'added' => $added);
     }
 
+    /**
+     * Returns tag value from hash (i.e. cfe6b389803750c8ba7637e380a9cfae0b861950 will result in 1.0.0)
+     *
+     * @param  $hash
+     * @return false|string
+     *
+     * @throws UnexpectedGitOutputException|GitRuntimeException
+     */
     public function getTagFromHash($hash) {
-        $output = self::execute('describe --tags --exact-match '.$hash);
-
-        if(count($output) == 1) {
-            return $output[0];
-        } else {
-            return null;
+        try{
+            $cmd = 'describe --tags --exact-match '.$hash;
+            $output = self::execute($cmd);
+            if(count($output) == 1) {
+                return $output[0];
+            } else {
+                throw new UnexpectedGitOutputException($cmd, $output);
+            }
+        } catch (GitRuntimeException $e) {
+            if(stripos($e->getMessage(), 'no tag exactly matches') !== false) {
+                return false;
+            }
+            throw $e;
         }
+
     }
 
     /**
@@ -193,8 +210,8 @@ class Git
         try {
             $output = self::execute('rev-parse --is-inside-work-tree', $path);
             return (is_array($output) && trim($output[0]) == "true");
-        } catch (\Exception $e) {
-            if (preg_match('/not a git repository/i', $e->getMessage()) > 0) {
+        } catch (GitRuntimeException $e) {
+            if (stripos($e->getMessage(), 'not a git repository') !== false) {
                 return false;
             }
             throw $e;
